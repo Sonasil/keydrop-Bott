@@ -29,6 +29,11 @@ WATCH_TIERS = {"amateur"}
 # Kac saniyede bir kontrol edilsin (sunucuyu yormamak icin 20+ onerilir).
 CHECK_INTERVAL = 25
 
+# Liste verisi gelene kadar her denemede en fazla bu kadar saniye beklenir.
+LIST_LOAD_TIMEOUT = 10
+# Liste yuklenmezse (internet vb.) bu kadar kez yeniden denenir.
+LIST_LOAD_RETRIES = 3
+
 # Tarayici profilinin saklanacagi klasor (giris bilgisi burada kalir).
 USER_DATA_DIR = "./keydrop_profile"
 
@@ -178,6 +183,14 @@ def detail_url(data, gid):
     return DETAIL_URL.format(org=org, id=gid)
 
 
+def got_list_data(payloads):
+    """Cekilis listesi API yaniti geldi mi? (sayfanin gercekten yuklendiginin isareti)"""
+    for _url, body in payloads:
+        if isinstance(body, dict) and isinstance(body.get("data"), list):
+            return True
+    return False
+
+
 def is_joinable(data):
     """Bu cekilise SU AN katilabilir miyim? (aktif + henuz katilmamis + suresi dolmamis)"""
     status = str(data.get("status", "")).strip().lower()
@@ -275,13 +288,29 @@ async def main():
         log(f"Izleme basliyor. Seviyeler={WATCH_TIERS}, aralik={CHECK_INTERVAL}s")
 
         while True:
-            payloads.clear()
-            ws_frames.clear()
-            try:
-                await page.goto(GIVEAWAYS_URL, wait_until="domcontentloaded")
-            except Exception as e:
-                log(f"Sayfa yenilenemedi: {e}")
-            await asyncio.sleep(4)  # arka plan isteklerinin bitmesini bekle
+            # Liste sayfasini yukle. Yuklenmezse (internet vb.) birkac kez yeniden dene.
+            loaded = False
+            for attempt in range(1, LIST_LOAD_RETRIES + 1):
+                payloads.clear()
+                ws_frames.clear()
+                try:
+                    await page.goto(GIVEAWAYS_URL, wait_until="domcontentloaded")
+                except Exception as e:
+                    log(f"Sayfa acilamadi (deneme {attempt}/{LIST_LOAD_RETRIES}): {e}")
+                # Cekilis verisi gelene kadar bekle (en fazla LIST_LOAD_TIMEOUT sn).
+                waited = 0.0
+                while waited < LIST_LOAD_TIMEOUT and not got_list_data(payloads):
+                    await asyncio.sleep(0.5)
+                    waited += 0.5
+                if got_list_data(payloads):
+                    loaded = True
+                    break
+                log(f"Liste yuklenemedi, yeniden deneniyor... ({attempt}/{LIST_LOAD_RETRIES})")
+                await asyncio.sleep(2)
+
+            if not loaded:
+                log("Liste birkac denemede de yuklenemedi (baglanti sorunu olabilir); "
+                    "bir sonraki turda tekrar denenecek.")
 
             found = collect_giveaways(list(payloads), list(ws_frames))
 

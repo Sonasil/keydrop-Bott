@@ -38,6 +38,10 @@ TIER_KEYS = ("frequency", "category", "type", "tier", "name", "level", "rank", "
 ALL_TIERS = ["amateur", "contender", "challenger", "champion"]
 # Bu durumlardaki cekilise artik katilamazsin (bitmis/iptal).
 FINISHED_STATUSES = {"ended", "finished", "cancelled", "canceled", "closed", "drawn"}
+# Liste verisi gelene kadar her denemede en fazla bu kadar saniye beklenir.
+LIST_LOAD_TIMEOUT = 10
+# Liste yuklenmezse (internet vb.) bu kadar kez yeniden denenir.
+LIST_LOAD_RETRIES = 3
 
 # UI <-> worker iletisim kanallari
 ui_queue = queue.Queue()
@@ -201,6 +205,14 @@ def detail_url(data, gid):
     return DETAIL_URL.format(org=org, id=gid)
 
 
+def got_list_data(payloads):
+    """Cekilis listesi API yaniti geldi mi? (sayfanin gercekten yuklendiginin isareti)"""
+    for _url, body in payloads:
+        if isinstance(body, dict) and isinstance(body.get("data"), list):
+            return True
+    return False
+
+
 def is_joinable(data):
     """Bu cekilise SU AN katilabilir miyim? (aktif + henuz katilmamis + suresi dolmamis)"""
     status = str(data.get("status", "")).strip().lower()
@@ -295,13 +307,35 @@ async def monitor(config):
         q_log(f"Izleme basladi. Seviyeler={sorted(watch_tiers)}, aralik={interval}s")
 
         while not stop_event.is_set():
-            payloads.clear()
-            ws_frames.clear()
-            try:
-                await page.goto(GIVEAWAYS_URL, wait_until="domcontentloaded")
-            except Exception as e:
-                q_log(f"Yenileme hatasi: {e}")
-            await asyncio.sleep(4)
+            # Liste sayfasini yukle. Yuklenmezse (internet vb.) birkac kez yeniden dene.
+            loaded = False
+            for attempt in range(1, LIST_LOAD_RETRIES + 1):
+                payloads.clear()
+                ws_frames.clear()
+                try:
+                    await page.goto(GIVEAWAYS_URL, wait_until="domcontentloaded")
+                except Exception as e:
+                    q_log(f"Sayfa acilamadi (deneme {attempt}/{LIST_LOAD_RETRIES}): {e}")
+                # Cekilis verisi gelene kadar bekle (en fazla LIST_LOAD_TIMEOUT sn).
+                waited = 0.0
+                while (waited < LIST_LOAD_TIMEOUT and not got_list_data(payloads)
+                       and not stop_event.is_set()):
+                    await asyncio.sleep(0.5)
+                    waited += 0.5
+                if got_list_data(payloads):
+                    loaded = True
+                    break
+                if stop_event.is_set():
+                    break
+                q_log(f"Liste yuklenemedi, yeniden deneniyor... "
+                      f"({attempt}/{LIST_LOAD_RETRIES})")
+                await asyncio.sleep(2)
+
+            if stop_event.is_set():
+                break
+            if not loaded:
+                q_log("Liste birkac denemede de yuklenemedi (baglanti sorunu olabilir); "
+                      "bir sonraki turda tekrar denenecek.")
 
             found = collect_giveaways(list(payloads), list(ws_frames), watch_tiers)
 
