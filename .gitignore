@@ -1,0 +1,13 @@
+# --- KISISEL / HASSAS: ASLA GitHub'a gitmemeli ---
+# Tarayici profili = Steam + Keydrop oturum cerezlerin (giris bilgin)
+keydrop_profile/
+
+# Siteden cekilen ham veri (steamID, kullanici adlari vb. icerir)
+debug_payloads.json
+
+# --- Python / ortam ---
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
