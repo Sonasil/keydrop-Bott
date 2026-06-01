@@ -183,6 +183,14 @@ async def monitor(config):
                 return
             await asyncio.sleep(0.3)
 
+        # Kullanici 'Izlemeyi baslat' dedi: onu otomatik olarak cekilis
+        # listesine geri goturuyoruz (giris sonrasi baska sayfada kalmis olabilir).
+        q_log("Cekilis listesine yonlendiriliyor...")
+        try:
+            await page.goto(GIVEAWAYS_URL, wait_until="domcontentloaded")
+        except Exception as e:
+            q_log(f"Yonlendirme hatasi: {e}")
+
         seen = set()
         baseline_done = False
         q_status("Izleniyor")
