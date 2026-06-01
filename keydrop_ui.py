@@ -291,7 +291,6 @@ async def monitor(config):
             q_log(f"Yonlendirme hatasi: {e}")
 
         notified = set()   # zaten "katilabilirsin" diye haber verdigimiz id'ler
-        detail_page = None  # detay sayfasini gosterdigimiz ayri sekme
         q_status("Izleniyor")
         q_log(f"Izleme basladi. Seviyeler={sorted(watch_tiers)}, aralik={interval}s")
 
@@ -328,24 +327,20 @@ async def monitor(config):
                             f"{summarize(info['data'])}")
                     notified.add(gid)
 
-                # Yeni katilinabilir cekilis varsa, detay (katilma) sayfasini AYRI
-                # sekmede ac. Izleme ana sekmede devam eder; katilma butonuna basmak
-                # kullaniciya kalir. Katilmaz, sadece sayfayi onune getirir.
-                if new_joinable and open_page:
+                # Yeni katilinabilir cekilis varsa: detay sayfasina git, (ucretsizse)
+                # katil ve ardindan cekilis listesine GERI DON ki izleme devam etsin.
+                if new_joinable and (open_page or auto_join):
                     gid = new_joinable[0]
                     data = joinable[gid]["data"]
                     url = detail_url(data, gid)
                     deposit = data.get("depositAmountRequired")
                     try:
-                        if detail_page is None or detail_page.is_closed():
-                            detail_page = await ctx.new_page()
-                        await detail_page.goto(url, wait_until="domcontentloaded")
-                        await detail_page.bring_to_front()
+                        await page.goto(url, wait_until="domcontentloaded")
                         q_log(f"Detay sayfasi acildi: {url}")
 
                         if auto_join and deposit == 0:
                             await asyncio.sleep(3)  # katil butonu render olsun
-                            clicked = await try_join_free(detail_page)
+                            clicked = await try_join_free(page)
                             if clicked:
                                 q_alert(f"OTOMATIK KATILDIN (ucretsiz): {clicked!r}")
                             else:
@@ -355,6 +350,12 @@ async def monitor(config):
                             q_log(f"Depozito istiyor (depo={deposit}"
                                   f"{data.get('depositAmountCurrency','')}); "
                                   f"otomatik katilim ATLANDI, karar senin.")
+
+                        # Islem bitti -> cekilis listesine geri don.
+                        if auto_join:
+                            await asyncio.sleep(1)
+                            await page.goto(GIVEAWAYS_URL, wait_until="domcontentloaded")
+                            q_log("Cekilis listesine geri donuldu.")
                     except Exception as e:
                         q_log(f"Detay sayfasi/katilim hatasi: {e}")
 

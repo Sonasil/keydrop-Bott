@@ -272,7 +272,6 @@ async def main():
         )
 
         notified = set()   # zaten "katilabilirsin" diye haber verdigimiz id'ler
-        detail_page = None  # detay sayfasini gosterdigimiz ayri sekme
         log(f"Izleme basliyor. Seviyeler={WATCH_TIERS}, aralik={CHECK_INTERVAL}s")
 
         while True:
@@ -309,23 +308,20 @@ async def main():
                     log(f"KATILABILIRSIN! {info['tier'].upper()} | {summarize(info['data'])}")
                     notified.add(gid)
 
-                # Yeni katilinabilir cekilis varsa detay sayfasini ayri sekmede ac.
-                # Izleme ana sekmede surer; katilma butonuna basmak sana kalir.
-                if new_joinable and OPEN_DETAIL_PAGE:
+                # Yeni katilinabilir cekilis varsa: detay sayfasina git, (ucretsizse)
+                # katil ve ardindan cekilis listesine GERI DON ki izleme devam etsin.
+                if new_joinable and (OPEN_DETAIL_PAGE or AUTO_JOIN_FREE):
                     gid = new_joinable[0]
                     data = joinable[gid]["data"]
                     url = detail_url(data, gid)
                     deposit = data.get("depositAmountRequired")
                     try:
-                        if detail_page is None or detail_page.is_closed():
-                            detail_page = await ctx.new_page()
-                        await detail_page.goto(url, wait_until="domcontentloaded")
-                        await detail_page.bring_to_front()
+                        await page.goto(url, wait_until="domcontentloaded")
                         log(f"Detay sayfasi acildi: {url}")
 
                         if AUTO_JOIN_FREE and deposit == 0:
                             await asyncio.sleep(3)  # katil butonu render olsun
-                            clicked = await try_join_free(detail_page)
+                            clicked = await try_join_free(page)
                             if clicked:
                                 log(f"OTOMATIK KATILDIN (ucretsiz): {clicked!r}")
                             else:
@@ -335,6 +331,12 @@ async def main():
                             log(f"Depozito istiyor (depo={deposit}"
                                 f"{data.get('depositAmountCurrency','')}); "
                                 f"otomatik katilim ATLANDI, karar senin.")
+
+                        # Islem bitti -> cekilis listesine geri don.
+                        if AUTO_JOIN_FREE:
+                            await asyncio.sleep(1)
+                            await page.goto(GIVEAWAYS_URL, wait_until="domcontentloaded")
+                            log("Cekilis listesine geri donuldu.")
                     except Exception as e:
                         log(f"Detay sayfasi/katilim hatasi: {e}")
 
