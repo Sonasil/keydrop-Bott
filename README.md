@@ -4,123 +4,101 @@
 
 ## TÜRKÇE
 
-### Bu ne işe yarar?
+### Ne işe yarar?
 
-Keydrop sitesindeki **amateur** çekilişleri takip eder. Yeni bir çekiliş açıldığında **bip sesi çalar** ve ekrana yazar. Hepsi bu.
-
----
-
-### Kurulum (sadece bir kere yapılır)
-
-**1. Adım — Klasörü aç**
-
-`kurulum.bat` dosyasına **çift tıkla.** Gerisini o halleder.
-
-Siyah bir ekran açılır, birkaç şey indirir, kapanır. Bitti.
+Keydrop sitesindeki **amateur** seviye çekilişleri sürekli takip eder. Yeni bir çekiliş açıldığında sesli bildirim verir ve ekrana yazar. Çekilişe katılmak tamamen sana kalmış, program sadece seni haberdar eder.
 
 ---
 
-**2. Adım — Çalıştır**
+### Kurulum
 
-`baslat.bat` dosyasına **çift tıkla.**
-
-Bir pencere açılır. Devam et:
-
-1. **Başlat** butonuna bas → Chrome açılır, Keydrop'a gider.
-2. Açılan Chrome'da **Steam ile giriş yap** (sadece ilk seferde gerekli, sonra hatırlar).
-3. Giriş yaptıktan sonra **"Giriş yaptım → İzlemeyi başlat"** butonuna bas.
-4. Bot çalışmaya başlar. Yeni amateur çekilişi çıkınca **bip sesi** duyarsın ve kırmızı satır belirir.
-5. Durdurmak istersen **Durdur** butonuna bas.
+İlk kullanımdan önce klasördeki `kurulum.bat` dosyasını çalıştır. Kısa bir kurulum ekranı açılıp kapanacak, gerekli her şey otomatik yüklenecek. Bunu bir kez yapman yeterli.
 
 ---
 
-### Ayarlar (isteğe bağlı)
+### Kullanım
 
-Pencerenin üstünde birkaç seçenek var:
+`baslat.bat` dosyasını çalıştır. Karşına çıkan pencerede şu adımları izle:
 
-| Ayar | Ne yapar |
+1. **Başlat** butonuna bas. Bir Chrome penceresi açılır ve Keydrop'a gider.
+2. Açılan tarayıcıda Steam hesabınla giriş yap. Bu adım yalnızca ilk seferde gereklidir, sonrasında oturum hatırlanır.
+3. Giriş yaptıktan sonra programdaki **"Giriş yaptım → İzlemeyi başlat"** butonuna bas.
+4. Program artık çalışıyor. Yeni bir amateur çekilişi açıldığında sesli uyarı alır, pencerede kırmızı bir satır görürsün.
+5. Durdurmak istediğinde **Durdur** butonuna basman yeterli.
+
+---
+
+### Ayarlar
+
+Pencerenin üst kısmında bazı seçenekler bulunuyor. Varsayılan haliyle gayet çalışır ama istersen değiştirebilirsin:
+
+| Ayar | Açıklama |
 |---|---|
-| Kontrol aralığı | Kaç saniyede bir siteyi kontrol etsin (25 sn önerilen, çok düşürme) |
-| Seviye seçimi | Hangi çekiliş seviyelerini izlesin (amateur, contender, challenger, champion) |
-| Ses | Bip sesini açar/kapar |
-| DEBUG | Geliştirici modu — sorun varsa açık bırak |
+| Kontrol aralığı | Sitenin kaç saniyede bir kontrol edileceği. 25 saniye önerilen değerdir. |
+| Seviye seçimi | Hangi çekiliş tiplerinin izleneceği — amateur, contender, challenger, champion |
+| Ses | Sesli bildirimi açar veya kapar |
+| DEBUG | Sorun yaşanırsa açık bırak, arka planda veri kaydeder |
 
 ---
 
-### Sorun mu var?
+### Sorun giderme
 
-Eğer "Hiç amateur kaydı yakalanamadı" gibi bir uyarı görürsen:
-- `DEBUG` açık olduğundan emin ol
-- Botta bir tur çalıştır, `debug_payloads.json` dosyası oluşur
-- O dosyayı bana gönder, düzeltiriz
+Ekranda "Hiç amateur kaydı yakalanamadı" gibi bir uyarı görürsen büyük ihtimalle sitenin veri yapısında küçük bir uyumsuzluk vardır. DEBUG modunu açık bırakarak programı bir kez çalıştır, klasörde `debug_payloads.json` adında bir dosya oluşacak. Bu dosyayı inceleyerek ya da bir geliştirici ile paylaşarak sorunu tespit edebilirsin.
 
 ---
 
-### Notlar
+### Güvenlik
 
-- Steam şifren **hiçbir yere kaydedilmez.** Bot sadece senin açtığın oturumu yeniden kullanır.
-- Çekilişe otomatik girmez. İnsan eliyle katılım zorunlu.
-- Sunucuyu yormamak için kontrol aralığını çok düşürme.
+Steam şifren veya oturum bilgilerinden herhangi biri hiçbir yere kaydedilmez. Program yalnızca senin kendi açtığın tarayıcı oturumunu yeniden kullanır.
 
 ---
 ---
 
 ## ENGLISH
 
-### What does this do?
+### What does it do?
 
-It monitors Keydrop for **amateur** giveaways. When a new one opens, it **beeps** and logs it on screen. That's it.
-
----
-
-### Setup (one time only)
-
-**Step 1 — Open the folder**
-
-Double-click `kurulum.bat`. It handles everything.
-
-A black window opens, downloads a few things, then closes. Done.
+It continuously monitors Keydrop for new **amateur** tier giveaways. When one opens up, it plays an alert sound and logs it on screen. Whether or not you join is entirely up to you — the program just keeps you informed.
 
 ---
 
-**Step 2 — Run it**
+### Setup
 
-Double-click `baslat.bat`.
-
-A window opens. Then:
-
-1. Click **Başlat (Start)** → Chrome opens and goes to Keydrop.
-2. In Chrome, **log in with Steam** (only needed the first time — it remembers after that).
-3. Once logged in, click **"Giriş yaptım → İzlemeyi başlat"** (I'm logged in → Start monitoring).
-4. The bot starts running. When a new amateur giveaway appears, you'll hear a **beep** and see a red line.
-5. To stop, click the **Durdur (Stop)** button.
+Before the first use, run `kurulum.bat` from the folder. A short setup window will open and close automatically, installing everything the program needs. You only need to do this once.
 
 ---
 
-### Settings (optional)
+### Usage
 
-A few options at the top of the window:
+Run `baslat.bat`. In the window that appears, follow these steps:
 
-| Setting | What it does |
+1. Click **Başlat (Start)**. A Chrome window will open and navigate to Keydrop.
+2. Log into Keydrop using your Steam account in that browser window. This is only required the first time — your session will be remembered afterward.
+3. Once logged in, click **"Giriş yaptım → İzlemeyi başlat"** (I'm logged in → Start monitoring) in the program window.
+4. The program is now running. When a new amateur giveaway opens, you'll hear an alert and see a red line appear in the log.
+5. When you want to stop, just hit the **Durdur (Stop)** button.
+
+---
+
+### Settings
+
+There are a few options at the top of the window. The defaults work fine, but feel free to adjust:
+
+| Setting | Description |
 |---|---|
-| Check interval | How often it checks the site in seconds (25s recommended, don't go too low) |
-| Tier selection | Which giveaway tiers to watch (amateur, contender, challenger, champion) |
-| Sound | Toggle the beep on/off |
-| DEBUG | Developer mode — leave on if something seems off |
+| Check interval | How frequently the site is checked, in seconds. 25 is the recommended value. |
+| Tier selection | Which giveaway tiers to monitor — amateur, contender, challenger, champion |
+| Sound | Enables or disables the audio alert |
+| DEBUG | Leave this on if something isn't working — it saves raw data in the background |
 
 ---
 
-### Something not working?
+### Troubleshooting
 
-If you see a warning like "No amateur entries found":
-- Make sure DEBUG is on
-- Let the bot run one cycle — it will create a `debug_payloads.json` file
-- Send that file over and we'll fix the matching
+If you see a message like "No amateur entries found", there's likely a minor mismatch between the program and how the site currently structures its data. Run the program once with DEBUG enabled — a file called `debug_payloads.json` will appear in the folder. Reviewing that file or sharing it with a developer should point you to the issue.
 
 ---
 
-### Notes
+### Security
 
-- Your Steam password is **never stored anywhere.** The bot only reuses the session you opened yourself.
-- It does not auto-join giveaways. Manual action is required.
-- Don't set the check interval too low — no need to hammer the server.
+Your Steam password and session data are never saved anywhere. The program simply reuses the browser session that you opened yourself, nothing more.
