@@ -1,71 +1,126 @@
-# Key-Drop amateur cekilis izleyici
+# Keydrop Çekiliş İzleyici
 
-Yeni bir **amateur** cekilisi acildiginda **ses calar + konsola yazar**.
-Senin yerine "Join/Katil" butonuna **basmaz** — katilmayi sen yaparsin.
+---
 
-## Kurulum (bir kere)
+## TÜRKÇE
 
-PowerShell'i bu klasorde ac ve sirayla:
+### Bu ne işe yarar?
 
-```powershell
-# 1) Sanal ortam (opsiyonel ama onerilir)
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+Keydrop sitesindeki **amateur** çekilişleri takip eder. Yeni bir çekiliş açıldığında **bip sesi çalar** ve ekrana yazar. Hepsi bu.
 
-# 2) Gerekli paket
-pip install -r requirements.txt
+---
 
-# 3) Tarayiciyi indir
-python -m playwright install chromium
-```
+### Kurulum (sadece bir kere yapılır)
 
-## Calistirma — ARAYUZ (onerilen)
+**1. Adım — Klasörü aç**
 
-```powershell
-python keydrop_ui.py
-```
+`kurulum.bat` dosyasına **çift tıkla.** Gerisini o halleder.
 
-Pencere acilir. Kullanim:
-1. **Baslat** -> bir Chrome penceresi acilir, keydrop listesine gider.
-2. Gerekirse **Steam ile giris yap** ve listeyi gor.
-3. Arayuzde **"Giris yaptim -> Izlemeyi baslat"** dugmesine bas.
-4. Yeni cekilis acilinca **ses calar** ve log'a **kirmizi** satir duser.
-5. **Durdur** ile istedigin an durdurabilirsin.
+Siyah bir ekran açılır, birkaç şey indirir, kapanır. Bitti.
 
-Ayarlar (pencerenin ustunde): kontrol araligi (sn), izlenecek seviyeler
-(amateur/contender/challenger/champion), ses ac/kapa, DEBUG ac/kapa.
+---
 
-## Calistirma — TERMINAL (alternatif)
+**2. Adım — Çalıştır**
 
-```powershell
-python keydrop_monitor.py
-```
+`baslat.bat` dosyasına **çift tıkla.**
 
-1. Bir Chrome penceresi acilir ve keydrop cekilis listesine gider.
-2. Gerekirse **Steam ile giris yap** ve cekilis listesini gor.
-   (Giris bilgisi `keydrop_profile/` klasorunde saklanir; bir dahaki sefere tekrar giris gerekmez.)
-3. Listeyi gorunce, **bu terminal penceresinde ENTER'a bas**.
-4. Bot izlemeye baslar. Yeni amateur cekilisi acilinca bip sesi calar ve satir yazar.
+Bir pencere açılır. Devam et:
 
-Durdurmak icin terminalde **Ctrl + C**.
+1. **Başlat** butonuna bas → Chrome açılır, Keydrop'a gider.
+2. Açılan Chrome'da **Steam ile giriş yap** (sadece ilk seferde gerekli, sonra hatırlar).
+3. Giriş yaptıktan sonra **"Giriş yaptım → İzlemeyi başlat"** butonuna bas.
+4. Bot çalışmaya başlar. Yeni amateur çekilişi çıkınca **bip sesi** duyarsın ve kırmızı satır belirir.
+5. Durdurmak istersen **Durdur** butonuna bas.
 
-## Ayarlar (`keydrop_monitor.py` ust kismi)
+---
 
-- `CHECK_INTERVAL` — kac saniyede bir kontrol (varsayilan 25; cok dusurme).
-- `WATCH_TIERS` — izlenecek seviyeler (varsayilan `{"amateur"}`). Ileride
-  `{"amateur", "contender"}` gibi genisletebiliriz.
-- `DEBUG` — `True` iken yakalanan ham veriyi `debug_payloads.json`'a yazar.
+### Ayarlar (isteğe bağlı)
 
-## ILK CALISTIRMA NOTU (onemli)
+Pencerenin üstünde birkaç seçenek var:
 
-Site verisini giris yapmadan goremedigim icin bot, gelen veride "amateur"
-etiketli kayitlari **kendi tarayarak** bulur. Ilk calistirmada eger
-"Hic amateur kaydi yakalanamadi" uyarisi gorursen, olusan **`debug_payloads.json`**
-dosyasini paylas; eslestirmeyi siteye birebir oturtalim.
+| Ayar | Ne yapar |
+|---|---|
+| Kontrol aralığı | Kaç saniyede bir siteyi kontrol etsin (25 sn önerilen, çok düşürme) |
+| Seviye seçimi | Hangi çekiliş seviyelerini izlesin (amateur, contender, challenger, champion) |
+| Ses | Bip sesini açar/kapar |
+| DEBUG | Geliştirici modu — sorun varsa açık bırak |
 
-## Sinirlar / dogru kullanim
+---
 
-- Sadece **izleme + bildirim** yapar; otomatik katilim (auto-join) yoktur.
-- Kontrol araligini makul tut (sunucuyu gereksiz yorma).
-- Steam girisini her zaman sen elle yaparsin; bot sifre/oturum calmaz, sadece
-  senin actigin oturumu yeniden kullanir.
+### Sorun mu var?
+
+Eğer "Hiç amateur kaydı yakalanamadı" gibi bir uyarı görürsen:
+- `DEBUG` açık olduğundan emin ol
+- Botta bir tur çalıştır, `debug_payloads.json` dosyası oluşur
+- O dosyayı bana gönder, düzeltiriz
+
+---
+
+### Notlar
+
+- Steam şifren **hiçbir yere kaydedilmez.** Bot sadece senin açtığın oturumu yeniden kullanır.
+- Çekilişe otomatik girmez. İnsan eliyle katılım zorunlu.
+- Sunucuyu yormamak için kontrol aralığını çok düşürme.
+
+---
+---
+
+## ENGLISH
+
+### What does this do?
+
+It monitors Keydrop for **amateur** giveaways. When a new one opens, it **beeps** and logs it on screen. That's it.
+
+---
+
+### Setup (one time only)
+
+**Step 1 — Open the folder**
+
+Double-click `kurulum.bat`. It handles everything.
+
+A black window opens, downloads a few things, then closes. Done.
+
+---
+
+**Step 2 — Run it**
+
+Double-click `baslat.bat`.
+
+A window opens. Then:
+
+1. Click **Başlat (Start)** → Chrome opens and goes to Keydrop.
+2. In Chrome, **log in with Steam** (only needed the first time — it remembers after that).
+3. Once logged in, click **"Giriş yaptım → İzlemeyi başlat"** (I'm logged in → Start monitoring).
+4. The bot starts running. When a new amateur giveaway appears, you'll hear a **beep** and see a red line.
+5. To stop, click the **Durdur (Stop)** button.
+
+---
+
+### Settings (optional)
+
+A few options at the top of the window:
+
+| Setting | What it does |
+|---|---|
+| Check interval | How often it checks the site in seconds (25s recommended, don't go too low) |
+| Tier selection | Which giveaway tiers to watch (amateur, contender, challenger, champion) |
+| Sound | Toggle the beep on/off |
+| DEBUG | Developer mode — leave on if something seems off |
+
+---
+
+### Something not working?
+
+If you see a warning like "No amateur entries found":
+- Make sure DEBUG is on
+- Let the bot run one cycle — it will create a `debug_payloads.json` file
+- Send that file over and we'll fix the matching
+
+---
+
+### Notes
+
+- Your Steam password is **never stored anywhere.** The bot only reuses the session you opened yourself.
+- It does not auto-join giveaways. Manual action is required.
+- Don't set the check interval too low — no need to hammer the server.
