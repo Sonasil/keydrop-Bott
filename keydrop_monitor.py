@@ -3,19 +3,20 @@ Key-Drop "amateur" cekilis izleyici (monitor).
 
 NE YAPAR:
   - Giris yapilmis bir tarayici oturumu ile /tr/giveaways/list sayfasini izler.
-  - Belirli araliklarla yeni "amateur" cekilisi var mi diye bakar.
-  - YENI bir amateur cekilisi acildiginda: ses calar + konsola yazar.
+  - Belirli araliklarla katilabilecegin (aktif + henuz katilmadigin) cekilis var mi diye bakar.
+  - Boyle bir cekilis bulununca konsola yazar ve detay sayfasini ayri sekmede acar.
+  - UCRETSIZ (depozito=0) cekilise otomatik katilir ('cekilise katil' butonuna basar).
 
 NE YAPMAZ:
-  - Senin yerine "Join" / "Katil" butonuna BASMAZ. Katilma karari ve aksiyonu sana ait.
-  - Otomatik giris yapmaz; Steam giriskini bir kere sen elle yaparsin, oturum saklanir.
+  - Depozito (para) isteyen cekilise ASLA otomatik katilmaz; karar sana birakilir.
+  - 'tekrar katil' gibi para isteyen butonlara ASLA basmaz.
+  - Otomatik giris yapmaz; Steam girisini bir kere sen elle yaparsin, oturum saklanir.
 
 KURULUM:  README.md dosyasina bak.
 """
 
 import asyncio
 import json
-import sys
 from datetime import datetime
 
 from playwright.async_api import async_playwright
@@ -36,6 +37,9 @@ GIVEAWAYS_URL = "https://keydrop.com/tr/giveaways/list"
 DETAIL_URL = "https://keydrop.com/tr/giveaways/{org}/{id}"
 # Yeni katilinabilir cekiliste detay sayfasini ayri sekmede otomatik ac.
 OPEN_DETAIL_PAGE = True
+# Detay sayfasinda UCRETSIZ (depozito=0) cekilise otomatik katil ('cekilise katil').
+# 'tekrar katil' (parali) butonuna ASLA basmaz; depozitolu cekilise hic dokunmaz.
+AUTO_JOIN_FREE = True
 
 # True yaparsan yakalanan ham veriyi debug_payloads.json'a doker.
 # Ilk calistirmada True birak, dosyayi bana yolla; eslestirmeyi siteye gore netlestirelim.
@@ -47,23 +51,6 @@ ID_KEYS = ("id", "giveawayId", "uuid", "slug", "code", "_id", "hash")
 TIER_KEYS = ("frequency", "category", "type", "tier", "name", "level", "rank", "kind", "group")
 # Bu durumlardaki cekilise artik katilamazsin (bitmis/iptal).
 FINISHED_STATUSES = {"ended", "finished", "cancelled", "canceled", "closed", "drawn"}
-
-# ------------------------- BILDIRIM (SES) --------------------------
-
-try:
-    import winsound
-
-    def alert_sound():
-        # Dikkat cekmek icin birkac bip.
-        for _ in range(3):
-            winsound.Beep(1100, 250)
-            winsound.Beep(1500, 250)
-except Exception:  # winsound yoksa (Windows disi) terminal zili
-    def alert_sound():
-        for _ in range(3):
-            sys.stdout.write("\a")
-            sys.stdout.flush()
-
 
 def log(msg):
     print(f"[{datetime.now():%H:%M:%S}] {msg}", flush=True)
@@ -139,6 +126,40 @@ def collect_giveaways(payloads, ws_frames):
             find_giveaways(frame, found)
 
     return found
+
+
+def _norm(s):
+    """Turkce karakterleri ascii'ye indirger ve kucuk harfe cevirir (guvenli eslesme icin)."""
+    for a, b in (("İ", "i"), ("I", "i"), ("ı", "i"), ("Ş", "s"), ("ş", "s"),
+                 ("Ç", "c"), ("ç", "c"), ("Ğ", "g"), ("ğ", "g"),
+                 ("Ü", "u"), ("ü", "u"), ("Ö", "o"), ("ö", "o")):
+        s = s.replace(a, b)
+    return s.lower()
+
+# Asla basilmayacak butonlar (parali / risk). 'tekrar katil' para ister.
+_BLOCKED_BUTTON_WORDS = ("tekrar", "yeniden", "again", "2x", "sans")
+
+
+async def try_join_free(detail_page):
+    """Detay sayfasinda YALNIZCA ucretsiz 'cekilise katil' butonuna basar.
+    'tekrar katil' (parali) ve benzeri butonlara ASLA basmaz.
+    Tikladiysa butonun metnini, basmadiysa None doner."""
+    for el in await detail_page.query_selector_all("button, [role=button]"):
+        try:
+            if not (await el.is_visible() and await el.is_enabled()):
+                continue
+            raw = (await el.inner_text()).strip()
+        except Exception:
+            continue
+        if not raw or len(raw) > 45:
+            continue
+        t = _norm(raw)
+        if any(bad in t for bad in _BLOCKED_BUTTON_WORDS):
+            continue
+        if "katil" in t and "cekilis" in t:   # "cekilise katil"
+            await el.click()
+            return raw
+    return None
 
 
 def detail_url(data, gid):
@@ -286,22 +307,36 @@ async def main():
                 for gid in new_joinable:
                     info = joinable[gid]
                     log(f"KATILABILIRSIN! {info['tier'].upper()} | {summarize(info['data'])}")
-                    alert_sound()
                     notified.add(gid)
 
                 # Yeni katilinabilir cekilis varsa detay sayfasini ayri sekmede ac.
                 # Izleme ana sekmede surer; katilma butonuna basmak sana kalir.
                 if new_joinable and OPEN_DETAIL_PAGE:
                     gid = new_joinable[0]
-                    url = detail_url(joinable[gid]["data"], gid)
+                    data = joinable[gid]["data"]
+                    url = detail_url(data, gid)
+                    deposit = data.get("depositAmountRequired")
                     try:
                         if detail_page is None or detail_page.is_closed():
                             detail_page = await ctx.new_page()
                         await detail_page.goto(url, wait_until="domcontentloaded")
                         await detail_page.bring_to_front()
-                        log(f"Detay sayfasi acildi (katilmak senin elinde): {url}")
+                        log(f"Detay sayfasi acildi: {url}")
+
+                        if AUTO_JOIN_FREE and deposit == 0:
+                            await asyncio.sleep(3)  # katil butonu render olsun
+                            clicked = await try_join_free(detail_page)
+                            if clicked:
+                                log(f"OTOMATIK KATILDIN (ucretsiz): {clicked!r}")
+                            else:
+                                log("Ucretsiz 'cekilise katil' butonu bulunamadi "
+                                    "(zaten katilmis ya da sayfa farkli olabilir).")
+                        elif AUTO_JOIN_FREE and deposit != 0:
+                            log(f"Depozito istiyor (depo={deposit}"
+                                f"{data.get('depositAmountCurrency','')}); "
+                                f"otomatik katilim ATLANDI, karar senin.")
                     except Exception as e:
-                        log(f"Detay sayfasi acilamadi: {e}")
+                        log(f"Detay sayfasi/katilim hatasi: {e}")
 
                 if not new_joinable:
                     log(f"Yeni katilinabilir cekilis yok. "

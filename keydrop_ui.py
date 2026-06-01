@@ -7,8 +7,9 @@ Terminal yerine bu pencereden kontrol edersin:
   - Canli log ekrani
   - Kontrol araligi ve izlenecek seviye secimi
 
-Yeni bir secili-seviye cekilisi acilinca: SES calar + log'a kirmizi satir duser.
-Senin yerine Join'e BASMAZ.
+Katilabilecegin (aktif + henuz katilmadigin) bir cekilis bulununca log'a kirmizi
+satir duser, detay sayfasi ayri sekmede acilir ve UCRETSIZ (depozito=0) cekilise
+otomatik katilir. Depozito isteyen cekilise asla otomatik katilmaz.
 
 Calistirma:  python keydrop_ui.py
 (Once: pip install -r requirements.txt  ve  python -m playwright install chromium)
@@ -43,23 +44,6 @@ ui_queue = queue.Queue()
 stop_event = threading.Event()
 proceed_event = threading.Event()
 worker_thread = None
-
-# --------------------------- SES -----------------------------------
-
-try:
-    import winsound
-
-    def alert_sound():
-        for _ in range(3):
-            winsound.Beep(1100, 220)
-            winsound.Beep(1500, 220)
-except Exception:
-    def alert_sound():
-        import sys
-        for _ in range(3):
-            sys.stdout.write("\a")
-            sys.stdout.flush()
-
 
 # ----------------- SEMADAN BAGIMSIZ CEKILIS BULUCU -----------------
 
@@ -167,6 +151,40 @@ def collect_giveaways(payloads, ws_frames, watch_tiers):
     return found
 
 
+def _norm(s):
+    """Turkce karakterleri ascii'ye indirger ve kucuk harfe cevirir (guvenli eslesme icin)."""
+    for a, b in (("İ", "i"), ("I", "i"), ("ı", "i"), ("Ş", "s"), ("ş", "s"),
+                 ("Ç", "c"), ("ç", "c"), ("Ğ", "g"), ("ğ", "g"),
+                 ("Ü", "u"), ("ü", "u"), ("Ö", "o"), ("ö", "o")):
+        s = s.replace(a, b)
+    return s.lower()
+
+# Asla basilmayacak butonlar (parali / risk). 'tekrar katil' para ister.
+_BLOCKED_BUTTON_WORDS = ("tekrar", "yeniden", "again", "2x", "sans")
+
+
+async def try_join_free(detail_page):
+    """Detay sayfasinda YALNIZCA ucretsiz 'cekilise katil' butonuna basar.
+    'tekrar katil' (parali) ve benzeri butonlara ASLA basmaz.
+    Tikladiysa butonun metnini, basmadiysa None doner."""
+    for el in await detail_page.query_selector_all("button, [role=button]"):
+        try:
+            if not (await el.is_visible() and await el.is_enabled()):
+                continue
+            raw = (await el.inner_text()).strip()
+        except Exception:
+            continue
+        if not raw or len(raw) > 45:
+            continue
+        t = _norm(raw)
+        if any(bad in t for bad in _BLOCKED_BUTTON_WORDS):
+            continue
+        if "katil" in t and "cekilis" in t:   # "cekilise katil"
+            await el.click()
+            return raw
+    return None
+
+
 def detail_url(data, gid):
     """Cekilisin detay/katilma sayfasinin adresi. Organizator alanindan turetilir,
     yoksa Key-Drop'un kendi cekilisi varsayilir ('keydrop')."""
@@ -215,8 +233,8 @@ async def monitor(config):
     watch_tiers = config["tiers"]
     interval = config["interval"]
     debug = config["debug"]
-    sound = config["sound"]
     open_page = config.get("open_page", True)
+    auto_join = config.get("auto_join", False)
 
     payloads = []
     ws_frames = []
@@ -308,8 +326,6 @@ async def monitor(config):
                     info = joinable[gid]
                     q_alert(f"KATILABILIRSIN!  {info['tier'].upper()}  |  "
                             f"{summarize(info['data'])}")
-                    if sound:
-                        alert_sound()
                     notified.add(gid)
 
                 # Yeni katilinabilir cekilis varsa, detay (katilma) sayfasini AYRI
@@ -317,15 +333,30 @@ async def monitor(config):
                 # kullaniciya kalir. Katilmaz, sadece sayfayi onune getirir.
                 if new_joinable and open_page:
                     gid = new_joinable[0]
-                    url = detail_url(joinable[gid]["data"], gid)
+                    data = joinable[gid]["data"]
+                    url = detail_url(data, gid)
+                    deposit = data.get("depositAmountRequired")
                     try:
                         if detail_page is None or detail_page.is_closed():
                             detail_page = await ctx.new_page()
                         await detail_page.goto(url, wait_until="domcontentloaded")
                         await detail_page.bring_to_front()
-                        q_log(f"Detay sayfasi acildi (katilmak senin elinde): {url}")
+                        q_log(f"Detay sayfasi acildi: {url}")
+
+                        if auto_join and deposit == 0:
+                            await asyncio.sleep(3)  # katil butonu render olsun
+                            clicked = await try_join_free(detail_page)
+                            if clicked:
+                                q_alert(f"OTOMATIK KATILDIN (ucretsiz): {clicked!r}")
+                            else:
+                                q_log("Ucretsiz 'cekilise katil' butonu bulunamadi "
+                                      "(zaten katilmis ya da sayfa farkli olabilir).")
+                        elif auto_join and deposit != 0:
+                            q_log(f"Depozito istiyor (depo={deposit}"
+                                  f"{data.get('depositAmountCurrency','')}); "
+                                  f"otomatik katilim ATLANDI, karar senin.")
                     except Exception as e:
-                        q_log(f"Detay sayfasi acilamadi: {e}")
+                        q_log(f"Detay sayfasi/katilim hatasi: {e}")
 
                 if not new_joinable:
                     q_log(f"Yeni katilinabilir cekilis yok. "
@@ -389,14 +420,15 @@ class App:
             ttk.Checkbutton(cfg, text=t, variable=v).grid(row=0, column=col, sticky="w", padx=2)
             col += 1
 
-        self.sound_var = tk.BooleanVar(value=True)
-        ttk.Checkbutton(cfg, text="Ses", variable=self.sound_var).grid(row=1, column=1, sticky="w", pady=4)
         self.openpage_var = tk.BooleanVar(value=True)
         ttk.Checkbutton(cfg, text="Yeni cekiliste detay sayfasini ac",
-                        variable=self.openpage_var).grid(row=1, column=2, columnspan=3, sticky="w")
+                        variable=self.openpage_var).grid(row=1, column=1, columnspan=4, sticky="w", pady=4)
+        self.autojoin_var = tk.BooleanVar(value=True)
+        ttk.Checkbutton(cfg, text="Otomatik katil (yalnizca UCRETSIZ, depozito=0)",
+                        variable=self.autojoin_var).grid(row=2, column=1, columnspan=4, sticky="w")
         self.debug_var = tk.BooleanVar(value=True)
         ttk.Checkbutton(cfg, text="DEBUG (debug_payloads.json yaz)",
-                        variable=self.debug_var).grid(row=2, column=2, columnspan=3, sticky="w")
+                        variable=self.debug_var).grid(row=3, column=1, columnspan=4, sticky="w")
 
         # Dugmeler
         btns = ttk.Frame(root)
@@ -451,9 +483,9 @@ class App:
         config = {
             "tiers": tiers,
             "interval": max(10, int(self.interval_var.get())),
-            "sound": self.sound_var.get(),
             "debug": self.debug_var.get(),
             "open_page": self.openpage_var.get(),
+            "auto_join": self.autojoin_var.get(),
         }
         worker_thread = threading.Thread(target=worker_main, args=(config,), daemon=True)
         worker_thread.start()
