@@ -29,9 +29,14 @@ from playwright.async_api import async_playwright
 
 USER_DATA_DIR = "./keydrop_profile"
 GIVEAWAYS_URL = "https://keydrop.com/tr/giveaways/list"
+# Bir cekilisin detay (katilma) sayfasi. {org} = organizator, {id} = cekilis id.
+# Key-Drop'un kendi cekilisleri (amateur/contender/...) icin organizator 'keydrop'.
+DETAIL_URL = "https://keydrop.com/tr/giveaways/{org}/{id}"
 ID_KEYS = ("id", "giveawayId", "uuid", "slug", "code", "_id", "hash")
 TIER_KEYS = ("frequency", "category", "type", "tier", "name", "level", "rank", "kind", "group")
 ALL_TIERS = ["amateur", "contender", "challenger", "champion"]
+# Bu durumlardaki cekilise artik katilamazsin (bitmis/iptal).
+FINISHED_STATUSES = {"ended", "finished", "cancelled", "canceled", "closed", "drawn"}
 
 # UI <-> worker iletisim kanallari
 ui_queue = queue.Queue()
@@ -117,6 +122,81 @@ def summarize(data):
     return ", ".join(bits) if bits else "(detay icin debug_payloads.json)"
 
 
+def collect_giveaways(payloads, ws_frames, watch_tiers):
+    """Yakalanan API yanitlarindan izlenen seviyedeki cekilisleri toplar.
+
+    Once yapisi bilinen /giveaway/list yanitini okur (body['data'] listesi);
+    her kaydin 'frequency' (seviye), 'status', 'haveIJoined' alanlari burada gelir.
+    Hicbir yapili veri bulunamazsa semadan bagimsiz taramaya (find_giveaways) duser.
+    """
+    found = {}
+
+    def consider(node):
+        if not isinstance(node, dict):
+            return
+        freq = node.get("frequency")
+        if not isinstance(freq, str):
+            return
+        tier = freq.strip().lower()
+        if tier not in watch_tiers:
+            return
+        gid = None
+        for idk in ID_KEYS:
+            val = node.get(idk)
+            if isinstance(val, (str, int)):
+                gid = str(val)
+                break
+        if gid is None:
+            gid = str(abs(hash(json.dumps(node, sort_keys=True, default=str))))
+        found[gid] = {"tier": tier, "data": node}
+
+    structured = False
+    for _url, body in payloads:
+        if isinstance(body, dict) and isinstance(body.get("data"), list):
+            structured = True
+            for item in body["data"]:
+                consider(item)
+
+    # Yedek plan: API yapisi degismisse eski genel tarama
+    if not found and not structured:
+        for _url, body in payloads:
+            find_giveaways(body, found, watch_tiers)
+        for frame in ws_frames:
+            find_giveaways(frame, found, watch_tiers)
+
+    return found
+
+
+def detail_url(data, gid):
+    """Cekilisin detay/katilma sayfasinin adresi. Organizator alanindan turetilir,
+    yoksa Key-Drop'un kendi cekilisi varsayilir ('keydrop')."""
+    org = "keydrop"
+    o = data.get("organizer")
+    if isinstance(o, dict):
+        for k in ("slug", "name", "code"):
+            v = o.get(k)
+            if isinstance(v, str) and v.strip():
+                org = v.strip().lower()
+                break
+    elif isinstance(o, str) and o.strip():
+        org = o.strip().lower()
+    return DETAIL_URL.format(org=org, id=gid)
+
+
+def is_joinable(data):
+    """Bu cekilise SU AN katilabilir miyim? (aktif + henuz katilmamis + suresi dolmamis)"""
+    status = str(data.get("status", "")).strip().lower()
+    if status in FINISHED_STATUSES:
+        return False
+    if data.get("haveIJoined") is True:
+        return False
+    dl = data.get("deadlineTimestamp")
+    if isinstance(dl, (int, float)) and dl > 0:
+        if dl / 1000 <= datetime.now().timestamp():
+            return False
+    return True
+
+
 def q_log(text):
     ui_queue.put(("log", text))
 
@@ -136,6 +216,7 @@ async def monitor(config):
     interval = config["interval"]
     debug = config["debug"]
     sound = config["sound"]
+    open_page = config.get("open_page", True)
 
     payloads = []
     ws_frames = []
@@ -191,8 +272,8 @@ async def monitor(config):
         except Exception as e:
             q_log(f"Yonlendirme hatasi: {e}")
 
-        seen = set()
-        baseline_done = False
+        notified = set()   # zaten "katilabilirsin" diye haber verdigimiz id'ler
+        detail_page = None  # detay sayfasini gosterdigimiz ayri sekme
         q_status("Izleniyor")
         q_log(f"Izleme basladi. Seviyeler={sorted(watch_tiers)}, aralik={interval}s")
 
@@ -205,11 +286,7 @@ async def monitor(config):
                 q_log(f"Yenileme hatasi: {e}")
             await asyncio.sleep(4)
 
-            found = {}
-            for _u, data in list(payloads):
-                find_giveaways(data, found, watch_tiers)
-            for frame in list(ws_frames):
-                find_giveaways(frame, found, watch_tiers)
+            found = collect_giveaways(list(payloads), list(ws_frames), watch_tiers)
 
             if debug:
                 try:
@@ -219,25 +296,41 @@ async def monitor(config):
                 except Exception:
                     pass
 
-            new_ids = [g for g in found if g not in seen]
-
-            if not baseline_done:
-                seen.update(found.keys())
-                baseline_done = True
-                q_log(f"Baslangic: {len(found)} kayit bulundu (mevcutlar 'gorulmus' sayildi).")
-                if not found:
-                    q_log("UYARI: Hic kayit yakalanamadi. DEBUG'i acip "
-                          "debug_payloads.json'i paylas.")
+            if not found:
+                q_log("UYARI: Hic kayit yakalanamadi. DEBUG'i acip "
+                      "debug_payloads.json'i paylas.")
             else:
-                for gid in new_ids:
-                    info = found[gid]
-                    q_alert(f"YENI {info['tier'].upper()} CEKILIS!  id={gid}  |  "
+                joinable = {g: i for g, i in found.items() if is_joinable(i["data"])}
+                joined = [g for g, i in found.items() if i["data"].get("haveIJoined") is True]
+                new_joinable = [g for g in joinable if g not in notified]
+
+                for gid in new_joinable:
+                    info = joinable[gid]
+                    q_alert(f"KATILABILIRSIN!  {info['tier'].upper()}  |  "
                             f"{summarize(info['data'])}")
                     if sound:
                         alert_sound()
-                    seen.add(gid)
-                if not new_ids:
-                    q_log(f"Yeni yok. (Takipteki: {len(seen)})")
+                    notified.add(gid)
+
+                # Yeni katilinabilir cekilis varsa, detay (katilma) sayfasini AYRI
+                # sekmede ac. Izleme ana sekmede devam eder; katilma butonuna basmak
+                # kullaniciya kalir. Katilmaz, sadece sayfayi onune getirir.
+                if new_joinable and open_page:
+                    gid = new_joinable[0]
+                    url = detail_url(joinable[gid]["data"], gid)
+                    try:
+                        if detail_page is None or detail_page.is_closed():
+                            detail_page = await ctx.new_page()
+                        await detail_page.goto(url, wait_until="domcontentloaded")
+                        await detail_page.bring_to_front()
+                        q_log(f"Detay sayfasi acildi (katilmak senin elinde): {url}")
+                    except Exception as e:
+                        q_log(f"Detay sayfasi acilamadi: {e}")
+
+                if not new_joinable:
+                    q_log(f"Yeni katilinabilir cekilis yok. "
+                          f"(Katilabilir: {len(joinable)}, katildiklarin: {len(joined)}, "
+                          f"toplam izlenen: {len(found)})")
 
             # kesintiye uygun bekleme
             waited = 0.0
@@ -298,9 +391,12 @@ class App:
 
         self.sound_var = tk.BooleanVar(value=True)
         ttk.Checkbutton(cfg, text="Ses", variable=self.sound_var).grid(row=1, column=1, sticky="w", pady=4)
+        self.openpage_var = tk.BooleanVar(value=True)
+        ttk.Checkbutton(cfg, text="Yeni cekiliste detay sayfasini ac",
+                        variable=self.openpage_var).grid(row=1, column=2, columnspan=3, sticky="w")
         self.debug_var = tk.BooleanVar(value=True)
         ttk.Checkbutton(cfg, text="DEBUG (debug_payloads.json yaz)",
-                        variable=self.debug_var).grid(row=1, column=2, columnspan=3, sticky="w")
+                        variable=self.debug_var).grid(row=2, column=2, columnspan=3, sticky="w")
 
         # Dugmeler
         btns = ttk.Frame(root)
@@ -357,6 +453,7 @@ class App:
             "interval": max(10, int(self.interval_var.get())),
             "sound": self.sound_var.get(),
             "debug": self.debug_var.get(),
+            "open_page": self.openpage_var.get(),
         }
         worker_thread = threading.Thread(target=worker_main, args=(config,), daemon=True)
         worker_thread.start()

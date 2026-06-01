@@ -32,6 +32,10 @@ CHECK_INTERVAL = 25
 USER_DATA_DIR = "./keydrop_profile"
 
 GIVEAWAYS_URL = "https://keydrop.com/tr/giveaways/list"
+# Bir cekilisin detay (katilma) sayfasi. {org}=organizator, {id}=cekilis id.
+DETAIL_URL = "https://keydrop.com/tr/giveaways/{org}/{id}"
+# Yeni katilinabilir cekiliste detay sayfasini ayri sekmede otomatik ac.
+OPEN_DETAIL_PAGE = True
 
 # True yaparsan yakalanan ham veriyi debug_payloads.json'a doker.
 # Ilk calistirmada True birak, dosyayi bana yolla; eslestirmeyi siteye gore netlestirelim.
@@ -41,6 +45,8 @@ DEBUG = True
 ID_KEYS = ("id", "giveawayId", "uuid", "slug", "code", "_id", "hash")
 # JSON icinde seviye/tier olabilecek anahtarlar.
 TIER_KEYS = ("frequency", "category", "type", "tier", "name", "level", "rank", "kind", "group")
+# Bu durumlardaki cekilise artik katilamazsin (bitmis/iptal).
+FINISHED_STATUSES = {"ended", "finished", "cancelled", "canceled", "closed", "drawn"}
 
 # ------------------------- BILDIRIM (SES) --------------------------
 
@@ -89,6 +95,80 @@ def find_giveaways(node, found):
         for item in node:
             find_giveaways(item, found)
     return found
+
+
+def collect_giveaways(payloads, ws_frames):
+    """Yakalanan API yanitlarindan izlenen seviyedeki (WATCH_TIERS) cekilisleri toplar.
+
+    Once yapisi bilinen /giveaway/list yanitini okur (body['data'] listesi);
+    her kaydin 'frequency' (seviye), 'status', 'haveIJoined' alanlari burada gelir.
+    Hicbir yapili veri yoksa semadan bagimsiz taramaya (find_giveaways) duser.
+    """
+    found = {}
+
+    def consider(node):
+        if not isinstance(node, dict):
+            return
+        freq = node.get("frequency")
+        if not isinstance(freq, str):
+            return
+        tier = freq.strip().lower()
+        if tier not in WATCH_TIERS:
+            return
+        gid = None
+        for idk in ID_KEYS:
+            val = node.get(idk)
+            if isinstance(val, (str, int)):
+                gid = str(val)
+                break
+        if gid is None:
+            gid = str(abs(hash(json.dumps(node, sort_keys=True, default=str))))
+        found[gid] = {"tier": tier, "data": node}
+
+    structured = False
+    for _url, body in payloads:
+        if isinstance(body, dict) and isinstance(body.get("data"), list):
+            structured = True
+            for item in body["data"]:
+                consider(item)
+
+    if not found and not structured:
+        for _url, body in payloads:
+            find_giveaways(body, found)
+        for frame in ws_frames:
+            find_giveaways(frame, found)
+
+    return found
+
+
+def detail_url(data, gid):
+    """Cekilisin detay/katilma sayfasi adresi. Organizator alanindan turetilir,
+    yoksa Key-Drop'un kendi cekilisi varsayilir ('keydrop')."""
+    org = "keydrop"
+    o = data.get("organizer")
+    if isinstance(o, dict):
+        for k in ("slug", "name", "code"):
+            v = o.get(k)
+            if isinstance(v, str) and v.strip():
+                org = v.strip().lower()
+                break
+    elif isinstance(o, str) and o.strip():
+        org = o.strip().lower()
+    return DETAIL_URL.format(org=org, id=gid)
+
+
+def is_joinable(data):
+    """Bu cekilise SU AN katilabilir miyim? (aktif + henuz katilmamis + suresi dolmamis)"""
+    status = str(data.get("status", "")).strip().lower()
+    if status in FINISHED_STATUSES:
+        return False
+    if data.get("haveIJoined") is True:
+        return False
+    dl = data.get("deadlineTimestamp")
+    if isinstance(dl, (int, float)) and dl > 0:
+        if dl / 1000 <= datetime.now().timestamp():
+            return False
+    return True
 
 
 def _fmt_deadline(ms):
@@ -170,8 +250,8 @@ async def main():
             ">>> Giris yapip listeyi gordukten sonra bu pencerede ENTER'a bas...\n"
         )
 
-        seen = set()
-        baseline_done = False
+        notified = set()   # zaten "katilabilirsin" diye haber verdigimiz id'ler
+        detail_page = None  # detay sayfasini gosterdigimiz ayri sekme
         log(f"Izleme basliyor. Seviyeler={WATCH_TIERS}, aralik={CHECK_INTERVAL}s")
 
         while True:
@@ -183,11 +263,7 @@ async def main():
                 log(f"Sayfa yenilenemedi: {e}")
             await asyncio.sleep(4)  # arka plan isteklerinin bitmesini bekle
 
-            found = {}
-            for _url, data in list(payloads):
-                find_giveaways(data, found)
-            for frame in list(ws_frames):
-                find_giveaways(frame, found)
+            found = collect_giveaways(list(payloads), list(ws_frames))
 
             if DEBUG:
                 try:
@@ -199,24 +275,38 @@ async def main():
                 except Exception:
                     pass
 
-            new_ids = [gid for gid in found if gid not in seen]
-
-            if not baseline_done:
-                seen.update(found.keys())
-                baseline_done = True
-                log(f"Baslangic taramasi: {len(found)} amateur kayit bulundu "
-                    f"(mevcut olanlar 'gorulmus' sayildi, bildirim verilmedi).")
-                if not found:
-                    log("UYARI: Hic amateur kaydi yakalanamadi. DEBUG=True ile "
-                        "debug_payloads.json'i kontrol et / bana yolla.")
+            if not found:
+                log("UYARI: Hic kayit yakalanamadi. DEBUG=True ile "
+                    "debug_payloads.json'i kontrol et / bana yolla.")
             else:
-                for gid in new_ids:
-                    info = found[gid]
-                    log(f"YENI AMATEUR CEKILIS! id={gid} | {summarize(info['data'])}")
+                joinable = {g: i for g, i in found.items() if is_joinable(i["data"])}
+                joined = [g for g, i in found.items() if i["data"].get("haveIJoined") is True]
+                new_joinable = [g for g in joinable if g not in notified]
+
+                for gid in new_joinable:
+                    info = joinable[gid]
+                    log(f"KATILABILIRSIN! {info['tier'].upper()} | {summarize(info['data'])}")
                     alert_sound()
-                    seen.add(gid)
-                if not new_ids:
-                    log(f"Yeni yok. (Takip edilen amateur sayisi: {len(seen)})")
+                    notified.add(gid)
+
+                # Yeni katilinabilir cekilis varsa detay sayfasini ayri sekmede ac.
+                # Izleme ana sekmede surer; katilma butonuna basmak sana kalir.
+                if new_joinable and OPEN_DETAIL_PAGE:
+                    gid = new_joinable[0]
+                    url = detail_url(joinable[gid]["data"], gid)
+                    try:
+                        if detail_page is None or detail_page.is_closed():
+                            detail_page = await ctx.new_page()
+                        await detail_page.goto(url, wait_until="domcontentloaded")
+                        await detail_page.bring_to_front()
+                        log(f"Detay sayfasi acildi (katilmak senin elinde): {url}")
+                    except Exception as e:
+                        log(f"Detay sayfasi acilamadi: {e}")
+
+                if not new_joinable:
+                    log(f"Yeni katilinabilir cekilis yok. "
+                        f"(Katilabilir: {len(joinable)}, katildiklarin: {len(joined)}, "
+                        f"toplam izlenen: {len(found)})")
 
             await asyncio.sleep(CHECK_INTERVAL)
 
