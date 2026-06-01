@@ -4,12 +4,6 @@
 
 ## TÜRKÇE
 
-### Bu ne işe yarar?
-
-Keydrop sitesindeki **amateur** çekilişleri takip eder. Yeni bir çekiliş açıldığında **bip sesi çalar** ve ekrana yazar. Hepsi bu.
-
----
-
 ### Kurulum (sadece bir kere yapılır)
 
 **1. Adım — Klasörü aç**
@@ -67,11 +61,6 @@ Eğer "Hiç amateur kaydı yakalanamadı" gibi bir uyarı görürsen:
 
 ## ENGLISH
 
-### What does this do?
-
-It monitors Keydrop for **amateur** giveaways. When a new one opens, it **beeps** and logs it on screen. That's it.
-
----
 
 ### Setup (one time only)
 
