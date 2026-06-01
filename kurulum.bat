@@ -6,7 +6,7 @@ echo  Key-Drop Izleyici - KURULUM (bir kere)
 echo ============================================
 echo.
 echo Gerekli paketler yukleniyor...
-python -m pip install -r requirements.txt
+python -m pip install -r kaynak\requirements.txt
 echo.
 echo Tarayici (chromium) indiriliyor...
 python -m playwright install chromium

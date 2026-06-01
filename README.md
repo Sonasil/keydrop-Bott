@@ -4,7 +4,7 @@
 
 ## TÜRKÇE
 
-Keydrop sitesindeki amateur çekilişlerini otomatik olarak takip eden küçük bir araç. Henüz katılmadığın ve hâlâ aktif olan bir çekiliş bulduğunda sesli uyarı veriyor ve ekrana düşürüyor; böylece "katılabileceğin" çekilişleri kaçırmıyorsun. Çekilişe gidip katılmak tamamen sana bırakılmış.
+Keydrop sitesindeki amateur çekilişlerini otomatik olarak takip eden küçük bir araç. Henüz katılmadığın ve hâlâ aktif olan bir çekiliş bulduğunda ekrana düşürüyor, çekilişin sayfasını açıyor ve ücretsiz çekilişlere senin yerine katılıyor; böylece "katılabileceğin" çekilişleri kaçırmıyorsun.
 
 ---
 
@@ -18,7 +18,7 @@ Klasördeki `kurulum.bat` dosyasını bir kez çalıştır. Gerekli her şeyi ke
 
 `baslat.bat` dosyasını çalıştır. Açılan pencerede **Başlat** butonuna bas, Chrome otomatik olarak Keydrop'a gidecek. Eğer daha önce giriş yapmadıysan Steam hesabınla o sayfadan giriş yap — program bunu bir kez yaptıktan sonra hatırlıyor. Giriş yaptıktan sonra penceredeki **"Giriş yaptım → İzlemeyi başlat"** butonuna bas, izleme başlasın.
 
-Katılabileceğin (aktif olan ve henüz katılmadığın) bir amateur çekilişi bulununca pencerede kırmızı bir satır göreceksin. Aynı anda program o çekilişin detay sayfasını **ayrı bir sekmede** otomatik açar ve **ücretsiz (depozito = 0)** çekilişlerde "çekilişe katıl" butonuna senin yerine basar. Depozito isteyen çekilişlerde sayfayı açar ama katılmaz — kararı sana bırakır. İzleme arka planda devam eder, seni sayfadan koparmaz. Zaten katıldığın veya süresi dolmuş çekilişler için tekrar tekrar uyarı vermez. Durdurmak istediğinde **Durdur** butonuna basman yeterli.
+Katılabileceğin (aktif olan ve henüz katılmadığın) bir amateur çekilişi bulununca pencerede kırmızı bir satır göreceksin. Aynı anda program **aynı sekmede** o çekilişin detay sayfasına gider ve **ücretsiz (depozito = 0)** çekilişlerde "çekilişe katıl" butonuna senin yerine basar. Depozito isteyen çekilişlerde sayfayı açar ama katılmaz — kararı sana bırakır. İşi bitince çekiliş listesine geri döner ve izlemeye kaldığı yerden devam eder. Zaten katıldığın veya süresi dolmuş çekilişler için tekrar tekrar uyarı vermez. Durdurmak istediğinde **Durdur** butonuna basman yeterli.
 
 ---
 
@@ -34,6 +34,12 @@ Pencerenin üst kısmında birkaç seçenek var. Varsayılan değerleriyle gayet
 
 ---
 
+### Klasör içeriği
+
+Günlük kullanımda sana lazım olan iki dosya kök klasörde duruyor: kurulumu yapan `kurulum.bat` ve programı açan `baslat.bat`. Bir de okuduğun bu `README.md`. Programın asıl kodları `kaynak/` klasöründe (`keydrop_ui.py`, `keydrop_monitor.py`, `requirements.txt`) — bunlara dokunmana gerek yok. Çalışırken oluşan `keydrop_profile/` (tarayıcı oturumun) ve `debug_payloads.json` dosyaları kişisel verindir, GitHub'a gönderilmez.
+
+---
+
 ### Güvenlik
 
 Steam oturum bilgilerin hiçbir yere gönderilmiyor. Program yalnızca senin kendi açtığın tarayıcı oturumunu kullanıyor.
@@ -43,7 +49,7 @@ Steam oturum bilgilerin hiçbir yere gönderilmiyor. Program yalnızca senin ken
 
 ## ENGLISH
 
-A lightweight tool that monitors Keydrop for amateur giveaways. When it finds one that's still active and that you haven't joined yet, it logs it on screen, opens the giveaway's detail page in a separate tab, and joins **free (deposit = 0)** giveaways for you automatically. For giveaways that require a deposit, it opens the page but never joins — that's left to you.
+A lightweight tool that monitors Keydrop for amateur giveaways. When it finds one that's still active and that you haven't joined yet, it logs it on screen, navigates to the giveaway's detail page, and joins **free (deposit = 0)** giveaways for you automatically. For giveaways that require a deposit, it opens the page but never joins — that's left to you.
 
 ---
 
@@ -57,7 +63,7 @@ Run `kurulum.bat` from the folder once. It will handle all the necessary install
 
 Run `baslat.bat`. In the window that opens, click **Başlat (Start)** and Chrome will automatically navigate to Keydrop. If you haven't logged in before, sign in with your Steam account on that page — the program remembers it after the first time. Once you're logged in, click **"Giriş yaptım → İzlemeyi başlat"** (I'm logged in → Start monitoring) and you're good to go.
 
-When a joinable amateur giveaway (active and not yet joined) is found, a red line will appear in the log. At the same time the program opens that giveaway's detail page in a **separate tab** and, for **free (deposit = 0)** giveaways, clicks the join button for you. For giveaways requiring a deposit it opens the page but won't join — that's your call. Monitoring keeps running in the background and won't pull you away from the page. It won't keep alerting you about giveaways you've already joined or ones that have expired. Hit **Durdur (Stop)** whenever you want to stop.
+When a joinable amateur giveaway (active and not yet joined) is found, a red line will appear in the log. At the same time the program navigates to that giveaway's detail page **in the same tab** and, for **free (deposit = 0)** giveaways, clicks the join button for you. For giveaways requiring a deposit it opens the page but won't join — that's your call. When it's done it returns to the giveaway list and keeps monitoring where it left off. It won't keep alerting you about giveaways you've already joined or ones that have expired. Hit **Durdur (Stop)** whenever you want to stop.
 
 ---
 
@@ -70,6 +76,12 @@ There are a few options at the top of the window. It works fine out of the box, 
 ### Troubleshooting
 
 If you see something like "No amateur entries found", run the program once with DEBUG enabled. A file called `debug_payloads.json` will appear in the folder, which can be used to figure out what's going wrong.
+
+---
+
+### Folder contents
+
+For everyday use, the only files you need live in the root folder: `kurulum.bat` (one-time setup), `baslat.bat` (launches the program), and this `README.md`. The actual program code sits in the `kaynak/` folder (`keydrop_ui.py`, `keydrop_monitor.py`, `requirements.txt`) — you don't need to touch it. The `keydrop_profile/` (your browser session) and `debug_payloads.json` files are created while running; they're personal data and are never pushed to GitHub.
 
 ---
 
