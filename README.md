@@ -1,4 +1,4 @@
-# Keydrop Çekiliş İzleyici
+# Keydrop Çekiliş botu
 
 ---
 
