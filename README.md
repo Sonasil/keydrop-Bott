@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://buymeacoffee.com/turkmenasim" target="_blank">
+  <a href="https://buymeacoffee.com/turkmenasil" target="_blank">
     <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="60" width="217" />
   </a>
 </p>
@@ -142,13 +142,13 @@ This is an unofficial, community-made tool and is **not affiliated with Keydrop 
 This **Keydrop giveaways bot** is built and maintained in my free time, and it's **completely free** for everyone. If it helped you snag some free Keydrop giveaways, the best way to say thanks is to **buy me a coffee** — every coffee directly motivates me to keep improving the bot, fix issues faster, and add new features. Your support truly means a lot. ❤️
 
 <p align="center">
-  <a href="https://buymeacoffee.com/turkmenasim" target="_blank">
+  <a href="https://buymeacoffee.com/turkmenasil" target="_blank">
     <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee — Support the Keydrop Bot" height="60" width="217" />
   </a>
 </p>
 
 <p align="center">
-  👉 <a href="https://buymeacoffee.com/turkmenasim"><strong>buymeacoffee.com/turkmenasim</strong></a>
+  👉 <a href="https://buymeacoffee.com/turkmenasil"><strong>buymeacoffee.com/turkmenasil</strong></a>
 </p>
 
 ---
