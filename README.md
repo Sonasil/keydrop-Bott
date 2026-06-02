@@ -43,7 +43,7 @@ If you've been searching for a **Keydrop bot**, a **Keydrop giveaways bot**, a *
 | **Configurable check interval** | Control how often the bot scans Keydrop (default 25s) |
 | **Multiple giveaway tiers** | Monitor amateur and other Keydrop giveaway tiers |
 | **No spam alerts** | Ignores giveaways you've already joined or that expired |
-| **One-click setup** | Install everything with a single `kurulum.bat` |
+| **One-click setup** | Install everything with a single `install.bat` |
 
 ---
 
@@ -51,11 +51,11 @@ If you've been searching for a **Keydrop bot**, a **Keydrop giveaways bot**, a *
 
 ### 1. Setup (one time)
 
-Run **`kurulum.bat`** from the folder once. It installs everything the **Keydrop bot** needs automatically — you only do this once.
+Run **`install.bat`** from the folder once. It installs everything the **Keydrop bot** needs automatically — you only do this once.
 
 ### 2. Launch the giveaways bot
 
-Run **`baslat.bat`**. In the window that opens:
+Run **`start.bat`**. In the window that opens:
 
 1. Click **Start** — Chrome opens and navigates to Keydrop automatically.
 2. If it's your first time, **log in with your Steam account** on that page. The bot remembers your session afterward.
@@ -87,24 +87,24 @@ If you see a message like **"No amateur entries found"**, run the **Keydrop bot*
 
 For everyday use you only need two files in the root folder:
 
-- **`kurulum.bat`** — one-time setup
-- **`baslat.bat`** — launches the Keydrop giveaways bot
+- **`install.bat`** — one-time setup
+- **`start.bat`** — launches the Keydrop giveaways bot
 - **`README.md`** — this guide
 
-The actual bot code lives in **`kaynak/`** (`keydrop_ui.py`, `keydrop_monitor.py`, `requirements.txt`) — you don't need to touch it. The `keydrop_profile/` (your browser session) and `debug_payloads.json` are personal data created while running and are **never pushed to GitHub**.
+The actual bot code lives in **`src/`** (`keydrop_ui.py`, `keydrop_monitor.py`, `requirements.txt`) — you don't need to touch it. The `keydrop_profile/` (your browser session) and `debug_payloads.json` are personal data created while running and are **never pushed to GitHub**.
 
 ---
 
 ## 🔒 Security & Privacy
 
-Your **Steam session data is never sent anywhere**. This **Keydrop bot** simply reuses the browser session you opened yourself, on your own machine. It's open source — read the code in `kaynak/` and see exactly what it does.
+Your **Steam session data is never sent anywhere**. This **Keydrop bot** simply reuses the browser session you opened yourself, on your own machine. It's open source — read the code in `src/` and see exactly what it does.
 
 ---
 
 ## 🧰 Requirements
 
 - **Windows** (uses `.bat` launchers)
-- **Python** + [Playwright](https://playwright.dev) (installed automatically by `kurulum.bat`)
+- **Python** + [Playwright](https://playwright.dev) (installed automatically by `install.bat`)
 - A **Steam account** to log in to Keydrop
 
 ---
