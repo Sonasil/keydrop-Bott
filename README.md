@@ -1,90 +1,156 @@
-# Keydrop Çekiliş botu
+# Keydrop Bot — Free Keydrop Giveaways Bot & Auto Joiner
+
+> **Keydrop Bot** is a lightweight **Keydrop giveaways bot** that automatically monitors [Keydrop](https://key-drop.com) for amateur giveaways and **auto-joins free (deposit = 0) giveaways** for you. A simple, safe, open-source **giveaways bot** so you never miss a free Keydrop giveaway again.
+
+<p align="center">
+  <strong>keydrop bot</strong> · <strong>keydrop giveaways bot</strong> · <strong>keydrop auto join</strong> · <strong>giveaways bot</strong> · <strong>keydrop giveaway joiner</strong> · <strong>keydrop free skins bot</strong>
+</p>
+
+<p align="center">
+  <em>☕ This bot is free and open source. If it won you some skins, buy me a coffee — it really keeps the project alive!</em>
+</p>
+
+<p align="center">
+  <a href="https://buymeacoffee.com/turkmenasim" target="_blank">
+    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="60" width="217" />
+  </a>
+</p>
 
 ---
 
-## TÜRKÇE
+## 🎁 What is Keydrop Bot?
 
-Keydrop sitesindeki amateur çekilişlerini otomatik olarak takip eden küçük bir araç. Henüz katılmadığın ve hâlâ aktif olan bir çekiliş bulduğunda ekrana düşürüyor, çekilişin sayfasını açıyor ve ücretsiz çekilişlere senin yerine katılıyor; böylece "katılabileceğin" çekilişleri kaçırmıyorsun.
+**Keydrop Bot** is a free, open-source **giveaways bot for Keydrop**. It watches the Keydrop giveaways page in the background and, the moment it spots an active amateur giveaway you haven't joined yet, it:
 
----
+- 🔍 **Detects new Keydrop giveaways** automatically (no manual refreshing)
+- 🖱️ **Auto-joins free giveaways** (deposit = 0) by clicking the join button for you
+- 📄 **Opens deposit giveaways** so you can decide — it never spends for you
+- 🔁 **Keeps monitoring 24/7** and returns to the list to keep watching
+- ✅ **Skips giveaways you already joined** or that have expired — no duplicate spam
 
-### Kurulum
-
-Klasördeki `kurulum.bat` dosyasını bir kez çalıştır. Gerekli her şeyi kendi yükleyecek. Bu adımı tekrar yapman gerekmez.
-
----
-
-### Kullanım
-
-`baslat.bat` dosyasını çalıştır. Açılan pencerede **Başlat** butonuna bas, Chrome otomatik olarak Keydrop'a gidecek. Eğer daha önce giriş yapmadıysan Steam hesabınla o sayfadan giriş yap — program bunu bir kez yaptıktan sonra hatırlıyor. Giriş yaptıktan sonra penceredeki **"Giriş yaptım → İzlemeyi başlat"** butonuna bas, izleme başlasın.
-
-Katılabileceğin (aktif olan ve henüz katılmadığın) bir amateur çekilişi bulununca pencerede kırmızı bir satır göreceksin. Aynı anda program **aynı sekmede** o çekilişin detay sayfasına gider ve **ücretsiz (depozito = 0)** çekilişlerde "çekilişe katıl" butonuna senin yerine basar. Depozito isteyen çekilişlerde sayfayı açar ama katılmaz — kararı sana bırakır. İşi bitince çekiliş listesine geri döner ve izlemeye kaldığı yerden devam eder. Zaten katıldığın veya süresi dolmuş çekilişler için tekrar tekrar uyarı vermez. Durdurmak istediğinde **Durdur** butonuna basman yeterli.
+If you've been searching for a **Keydrop bot**, a **Keydrop giveaways bot**, a **Keydrop auto joiner**, or just a reliable **giveaways bot** to grab free Keydrop giveaways while you're away from the keyboard — this is it.
 
 ---
 
-### Ayarlar
+## ✨ Features
 
-Pencerenin üst kısmında birkaç seçenek var. Varsayılan değerleriyle gayet iyi çalışıyor ama istersen değiştirebilirsin. Kontrol aralığı sitenin kaç saniyede bir kontrol edileceğini belirliyor — 25 saniye yeterli, daha aşağıya çekmene gerek yok. Seviye seçiminden amateur dışında başka çekiliş tiplerini de ekleyebilirsin. "Yeni çekilişte detay sayfasını aç" seçeneği o sayfayı otomatik açma davranışını, "Otomatik katıl" seçeneği ise ücretsiz çekilişlere otomatik katılmayı açıp kapatır. DEBUG seçeneği de orada.
-
----
-
-### Sorun yaşarsan
-
-"Hiç amateur kaydı yakalanamadı" gibi bir uyarı görürsen DEBUG modunu açık bırakarak programı bir kez çalıştır. Klasörde `debug_payloads.json` adında bir dosya oluşur, bu dosya sorunun nereden kaynaklandığını anlamak için kullanılabilir.
-
----
-
-### Klasör içeriği
-
-Günlük kullanımda sana lazım olan iki dosya kök klasörde duruyor: kurulumu yapan `kurulum.bat` ve programı açan `baslat.bat`. Bir de okuduğun bu `README.md`. Programın asıl kodları `kaynak/` klasöründe (`keydrop_ui.py`, `keydrop_monitor.py`, `requirements.txt`) — bunlara dokunmana gerek yok. Çalışırken oluşan `keydrop_profile/` (tarayıcı oturumun) ve `debug_payloads.json` dosyaları kişisel verindir, GitHub'a gönderilmez.
+| Feature | Description |
+|--------|-------------|
+| **Keydrop giveaways auto join** | Automatically joins free (deposit = 0) Keydrop giveaways |
+| **Smart giveaway detection** | Finds only active giveaways you haven't joined yet |
+| **Deposit safety** | Opens but never auto-joins paid/deposit giveaways |
+| **Steam login support** | Uses your own browser session — credentials never leave your PC |
+| **Configurable check interval** | Control how often the bot scans Keydrop (default 25s) |
+| **Multiple giveaway tiers** | Monitor amateur and other Keydrop giveaway tiers |
+| **No spam alerts** | Ignores giveaways you've already joined or that expired |
+| **One-click setup** | Install everything with a single `kurulum.bat` |
 
 ---
 
-### Güvenlik
+## 🚀 Quick Start
 
-Steam oturum bilgilerin hiçbir yere gönderilmiyor. Program yalnızca senin kendi açtığın tarayıcı oturumunu kullanıyor.
+### 1. Setup (one time)
 
----
----
+Run **`kurulum.bat`** from the folder once. It installs everything the **Keydrop bot** needs automatically — you only do this once.
 
-## ENGLISH
+### 2. Launch the giveaways bot
 
-A lightweight tool that monitors Keydrop for amateur giveaways. When it finds one that's still active and that you haven't joined yet, it logs it on screen, navigates to the giveaway's detail page, and joins **free (deposit = 0)** giveaways for you automatically. For giveaways that require a deposit, it opens the page but never joins — that's left to you.
+Run **`baslat.bat`**. In the window that opens:
 
----
+1. Click **Start** — Chrome opens and navigates to Keydrop automatically.
+2. If it's your first time, **log in with your Steam account** on that page. The bot remembers your session afterward.
+3. Click **"I'm logged in → Start monitoring"** and the **Keydrop giveaways bot** begins watching.
 
-### Setup
-
-Run `kurulum.bat` from the folder once. It will handle all the necessary installations automatically. You won't need to do this again.
-
----
-
-### Usage
-
-Run `baslat.bat`. In the window that opens, click **Başlat (Start)** and Chrome will automatically navigate to Keydrop. If you haven't logged in before, sign in with your Steam account on that page — the program remembers it after the first time. Once you're logged in, click **"Giriş yaptım → İzlemeyi başlat"** (I'm logged in → Start monitoring) and you're good to go.
-
-When a joinable amateur giveaway (active and not yet joined) is found, a red line will appear in the log. At the same time the program navigates to that giveaway's detail page **in the same tab** and, for **free (deposit = 0)** giveaways, clicks the join button for you. For giveaways requiring a deposit it opens the page but won't join — that's your call. When it's done it returns to the giveaway list and keeps monitoring where it left off. It won't keep alerting you about giveaways you've already joined or ones that have expired. Hit **Durdur (Stop)** whenever you want to stop.
+That's it. When a joinable amateur giveaway appears, the bot highlights it in red, opens the giveaway page **in the same tab**, and auto-joins it if it's free. Click **Stop** any time.
 
 ---
 
-### Settings
+## ⚙️ Settings
 
-There are a few options at the top of the window. It works fine out of the box, but you can adjust them if needed. The check interval controls how frequently the site is checked — 25 seconds is plenty, no need to go lower. You can add other giveaway tiers alongside amateur if you want. The "open detail page on new giveaway" option toggles auto-opening that page, and "auto join" toggles automatically joining free giveaways. The DEBUG toggle is there as well.
+A few options live at the top of the window. The defaults work great, but you can tune them:
 
----
-
-### Troubleshooting
-
-If you see something like "No amateur entries found", run the program once with DEBUG enabled. A file called `debug_payloads.json` will appear in the folder, which can be used to figure out what's going wrong.
-
----
-
-### Folder contents
-
-For everyday use, the only files you need live in the root folder: `kurulum.bat` (one-time setup), `baslat.bat` (launches the program), and this `README.md`. The actual program code sits in the `kaynak/` folder (`keydrop_ui.py`, `keydrop_monitor.py`, `requirements.txt`) — you don't need to touch it. The `keydrop_profile/` (your browser session) and `debug_payloads.json` files are created while running; they're personal data and are never pushed to GitHub.
+- **Check interval** — how often the bot scans Keydrop. 25 seconds is plenty.
+- **Giveaway tier** — add other Keydrop giveaway tiers beyond amateur.
+- **Open detail page on new giveaway** — toggle auto-opening the giveaway page.
+- **Auto join** — toggle automatic joining of free Keydrop giveaways.
+- **DEBUG** — enable extra logging for troubleshooting.
 
 ---
 
-### Security
+## 🛠️ Troubleshooting
 
-Your Steam session data is never sent anywhere. The program simply reuses the browser session you opened yourself.
+If you see a message like **"No amateur entries found"**, run the **Keydrop bot** once with **DEBUG** enabled. A `debug_payloads.json` file appears in the folder — it helps diagnose what went wrong.
+
+---
+
+## 📁 Folder Contents
+
+For everyday use you only need two files in the root folder:
+
+- **`kurulum.bat`** — one-time setup
+- **`baslat.bat`** — launches the Keydrop giveaways bot
+- **`README.md`** — this guide
+
+The actual bot code lives in **`kaynak/`** (`keydrop_ui.py`, `keydrop_monitor.py`, `requirements.txt`) — you don't need to touch it. The `keydrop_profile/` (your browser session) and `debug_payloads.json` are personal data created while running and are **never pushed to GitHub**.
+
+---
+
+## 🔒 Security & Privacy
+
+Your **Steam session data is never sent anywhere**. This **Keydrop bot** simply reuses the browser session you opened yourself, on your own machine. It's open source — read the code in `kaynak/` and see exactly what it does.
+
+---
+
+## 🧰 Requirements
+
+- **Windows** (uses `.bat` launchers)
+- **Python** + [Playwright](https://playwright.dev) (installed automatically by `kurulum.bat`)
+- A **Steam account** to log in to Keydrop
+
+---
+
+## ❓ FAQ
+
+**Is this a free Keydrop bot?**
+Yes — Keydrop Bot is 100% free and open source.
+
+**Does the Keydrop giveaways bot join paid/deposit giveaways?**
+No. It only auto-joins **free** giveaways (deposit = 0). Deposit giveaways are opened so *you* decide.
+
+**Is the Keydrop auto join bot safe?**
+It never sends your Steam credentials anywhere — it only uses your own local browser session.
+
+**Can it run 24/7 as a giveaways bot?**
+Yes. Leave it running and it keeps monitoring Keydrop for new giveaways and auto-joining free ones.
+
+---
+
+## 🏷️ Keywords
+
+`keydrop bot` · `keydrop giveaways bot` · `keydrop giveaway bot` · `giveaways bot` · `keydrop auto join` · `keydrop auto joiner` · `keydrop giveaway joiner` · `keydrop free giveaways` · `keydrop free skins bot` · `keydrop automation` · `keydrop monitor` · `key-drop bot` · `csgo skins giveaway bot` · `steam giveaway bot`
+
+---
+
+## 📜 Disclaimer
+
+This is an unofficial, community-made tool and is **not affiliated with Keydrop / key-drop.com**. Use it responsibly and at your own discretion, in line with Keydrop's terms of service.
+
+---
+
+## ☕ Support This Project
+
+This **Keydrop giveaways bot** is built and maintained in my free time, and it's **completely free** for everyone. If it helped you snag some free Keydrop giveaways, the best way to say thanks is to **buy me a coffee** — every coffee directly motivates me to keep improving the bot, fix issues faster, and add new features. Your support truly means a lot. ❤️
+
+<p align="center">
+  <a href="https://buymeacoffee.com/turkmenasim" target="_blank">
+    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee — Support the Keydrop Bot" height="60" width="217" />
+  </a>
+</p>
+
+<p align="center">
+  👉 <a href="https://buymeacoffee.com/turkmenasim"><strong>buymeacoffee.com/turkmenasim</strong></a>
+</p>
+
+---
+
+> ⭐ If this **Keydrop giveaways bot** helped you grab free giveaways, consider **starring the repo** and **buying me a coffee** above — it helps others find the bot and keeps development going!
