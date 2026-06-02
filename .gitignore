@@ -1,11 +1,11 @@
-# --- KISISEL / HASSAS: ASLA GitHub'a gitmemeli ---
-# Tarayici profili = Steam + Keydrop oturum cerezlerin (giris bilgin)
+# --- PERSONAL / SENSITIVE: must NEVER be pushed to GitHub ---
+# Browser profile = your Steam + Keydrop session cookies (your login)
 keydrop_profile/
 
-# Siteden cekilen ham veri (steamID, kullanici adlari vb. icerir)
+# Raw data scraped from the site (contains steamIDs, usernames, etc.)
 debug_payloads.json
 
-# --- Python / ortam ---
+# --- Python / environment ---
 __pycache__/
 *.pyc
 .venv/

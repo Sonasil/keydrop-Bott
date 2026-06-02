@@ -580,7 +580,7 @@ class App:
         self.autojoin_var = tk.BooleanVar(value=True)
         self.autojoin_chk = ttk.Checkbutton(self.cfg, text="", variable=self.autojoin_var)
         self.autojoin_chk.grid(row=2, column=1, columnspan=4, sticky="w")
-        self.debug_var = tk.BooleanVar(value=True)
+        self.debug_var = tk.BooleanVar(value=False)
         self.debug_chk = ttk.Checkbutton(self.cfg, text="", variable=self.debug_var)
         self.debug_chk.grid(row=3, column=1, columnspan=4, sticky="w")
 

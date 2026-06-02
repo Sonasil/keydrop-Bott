@@ -4,6 +4,6 @@ cd /d "%~dp0"
 python src\keydrop_ui.py
 if errorlevel 1 (
   echo.
-  echo Bir hata olustu. Once 'install.bat' calistirdin mi?
+  echo An error occurred. Did you run 'install.bat' first?
   pause
 )

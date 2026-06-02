@@ -91,7 +91,7 @@ For everyday use you only need two files in the root folder:
 - **`start.bat`** — launches the Keydrop giveaways bot
 - **`README.md`** — this guide
 
-The actual bot code lives in **`src/`** (`keydrop_ui.py`, `keydrop_monitor.py`, `requirements.txt`) — you don't need to touch it. The `keydrop_profile/` (your browser session) and `debug_payloads.json` are personal data created while running and are **never pushed to GitHub**.
+The actual bot code lives in **`src/`** (`keydrop_ui.py`, `requirements.txt`) — you don't need to touch it. The `keydrop_profile/` (your browser session) and `debug_payloads.json` are personal data created while running and are **never pushed to GitHub**.
 
 ---
 

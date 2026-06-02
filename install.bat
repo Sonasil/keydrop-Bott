@@ -2,16 +2,16 @@
 chcp 65001 >nul
 cd /d "%~dp0"
 echo ============================================
-echo  Key-Drop Izleyici - KURULUM (bir kere)
+echo  Key-Drop Monitor - SETUP (one time)
 echo ============================================
 echo.
-echo Gerekli paketler yukleniyor...
+echo Installing required packages...
 python -m pip install -r src\requirements.txt
 echo.
-echo Tarayici (chromium) indiriliyor...
+echo Downloading browser (chromium)...
 python -m playwright install chromium
 echo.
 echo ============================================
-echo  Kurulum bitti. Artik 'start.bat' ile acabilirsin.
+echo  Setup complete. You can now launch it with 'start.bat'.
 echo ============================================
 pause
